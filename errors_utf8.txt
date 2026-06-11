@@ -1,0 +1,50 @@
+﻿src/api/services/contributionService.ts(7,5): error TS6133: 'startingIdx' is declared but its value is never read.
+src/api/services/contributionService.ts(12,15): error TS6133: 'response' is declared but its value is never read.
+src/api/services/userService.ts(29,15): error TS6133: 'response' is declared but its value is never read.
+src/api/services/userService.ts(38,15): error TS6133: 'response' is declared but its value is never read.
+src/components/Contributor/ActiveSession.tsx(1,29): error TS6133: 'StopCircle' is declared but its value is never read.
+src/components/Contributor/ActiveSession.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.
+src/components/Contributor/ActiveSession.tsx(8,5): error TS6133: 'instituteId' is declared but its value is never read.
+src/components/Contributor/Modal.tsx(1,1): error TS6133: 'useState' is declared but its value is never read.
+src/components/Contributor/UserCard.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/Contributor/UserCard.tsx(7,5): error TS6133: 'name' is declared but its value is never read.
+src/components/HallofFame.tsx(23,42): error TS7006: Parameter 'contributor' implicitly has an 'any' type.
+src/components/HallofFame.tsx(23,55): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+src/components/InstituteCard.tsx(14,9): error TS6133: 'code' is declared but its value is never read.
+src/components/InstituteCard2.tsx(13,9): error TS6133: 'code' is declared but its value is never read.
+src/components/InstituteNotFound.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/InstituteNotFound.tsx(4,10): error TS6133: 'Navigate' is declared but its value is never read.
+src/components/StatsCard.tsx(4,3): error TS6133: 'CardDescription' is declared but its value is never read.
+src/components/ui/calendar.tsx(45,20): error TS6133: '_props' is declared but its value is never read.
+src/components/ui/calendar.tsx(46,21): error TS6133: '_props' is declared but its value is never read.
+src/components/UserInstance.tsx(2,1): error TS6133: 'Button' is declared but its value is never read.
+src/context/userContext.tsx(22,12): error TS6133: 'isContributing' is declared but its value is never read.
+src/context/userContext.tsx(37,31): error TS2741: Property 'isContributing' is missing in type '{ username: string | null; isReady: boolean; refreshAuth: () => Promise<void>; }' but required in type 'UserContextType'.
+src/hooks/useContribute.ts(57,58): error TS2339: Property 'isActive' does not exist on type 'UserContextType'.
+src/hooks/useContribute.ts(64,48): error TS2339: Property 'isActive' does not exist on type 'UserContextType'.
+src/pages/Index.tsx(31,24): error TS2345: Argument of type '(prev: { [k: string]: number; }) => { length: number; toString(): string; toLocaleString(): string; toLocaleString(locales: string | string[], options?: (NumberFormatOptions & DateTimeFormatOptions) | undefined): string; ... 31 more ...; at(index: number): CounterRow | undefined; }' is not assignable to parameter of type 'SetStateAction<{ [k: string]: number; }>'.
+  Type '(prev: { [k: string]: number; }) => { length: number; toString(): string; toLocaleString(): string; toLocaleString(locales: string | string[], options?: (NumberFormatOptions & DateTimeFormatOptions) | undefined): string; ... 31 more ...; at(index: number): CounterRow | undefined; }' is not assignable to type '(prevState: { [k: string]: number; }) => { [k: string]: number; }'.
+    Type '{ length: number; toString(): string; toLocaleString(): string; toLocaleString(locales: string | string[], options?: Intl.NumberFormatOptions & Intl.DateTimeFormatOptions): string; pop(): CounterRow | undefined; ... 30 more ...; at(index: number): CounterRow | undefined; }' is not assignable to type '{ [k: string]: number; }'.
+      Property 'toString' is incompatible with index signature.
+        Type '() => string' is not assignable to type 'number'.
+src/pages/Index.tsx(109,15): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/InstitutionDetail.tsx(12,23): error TS6133: 'Student' is declared but its value is never read.
+src/pages/InstitutionDetail.tsx(172,46): error TS2339: Property 'id' does not exist on type 'never'.
+src/pages/InstitutionDetail.tsx(176,43): error TS2339: Property 'profileUrl' does not exist on type 'never'.
+src/pages/InstitutionDetail.tsx(181,38): error TS2339: Property 'name' does not exist on type 'never'.
+src/pages/InstitutionDetail.tsx(184,45): error TS2339: Property 'branch' does not exist on type 'never'.
+src/pages/InstitutionDetail.tsx(186,36): error TS2339: Property 'score' does not exist on type 'never'.
+src/pages/InstitutionDetail.tsx(188,68): error TS2339: Property 'problemsSolved' does not exist on type 'never'.
+src/pages/Institutions.tsx(134,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/pages/Institutions.tsx(136,19): error TS2322: Type 'number' is not assignable to type 'string'.
+src/pages/Institutions.tsx(139,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/workers/scrapper.worker.ts(16,20): error TS6133: 'msg' is declared but its value is never read.
+src/workers/scrapper.worker.ts(39,7): error TS6133: 'dispatchBatch' is declared but its value is never read.
+src/workers/scrapper.worker.ts(41,5): error TS6133: 'batch' is declared but its value is never read.
+src/workers/scrapper.worker.ts(43,9): error TS6133: 'instIdStr' is declared but its value is never read.
+src/workers/scrapper.worker.ts(55,34): error TS2532: Object is possibly 'undefined'.
+src/workers/scrapper.worker.ts(57,22): error TS2532: Object is possibly 'undefined'.
+src/workers/scrapper.worker.ts(87,21): error TS2339: Property 'message' does not exist on type '{}'.
