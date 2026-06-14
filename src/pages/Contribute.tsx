@@ -38,6 +38,7 @@ const Contribute = () => {
       blockSize: scrapperWorkerConfig.BLOCK_SIZE
     }
   });
+  const [isExtensionInstalled, setIsExtensionInstalled] = useState<boolean>(false);
 
   const {
     institute,
@@ -58,7 +59,6 @@ const Contribute = () => {
     pauseContribution
   } = useContribute(id, setSessionState);
 
-
   const workerRef = useRef<Worker | null>(null);
   const sessionStateRef = useRef(sessionState);
 
@@ -67,12 +67,41 @@ const Contribute = () => {
     sessionStateRef.current = sessionState;
   }, [sessionState]);
 
+  // Listen for SussyGeek extension. Otherwise, can't contribute. 
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const handler = () => {
+      console.log("Detected SussyGeek extension");
+      setIsExtensionInstalled(true);
+      // Extension found — stop polling
+      if (interval) clearInterval(interval);
+      window.removeEventListener("sussygeek-pong", handler);
+    };
+
+    window.addEventListener("sussygeek-pong", handler);
+
+    interval = setInterval(() => {
+      window.dispatchEvent(new CustomEvent("sussygeek-ping"));
+    }, 1000);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      window.removeEventListener("sussygeek-pong", handler);
+    };
+  }, []);
+
   // Create worker once on mount, terminate on unmount.
   useEffect(() => {
     workerRef.current = new Worker(
       new URL("../workers/scrapper.worker.ts", import.meta.url),
       { type: "module" }
     );
+    // Send the session token to the worker since it can't access localStorage
+    const sessionId = localStorage.getItem('sessionId');
+    if (sessionId) {
+      workerRef.current.postMessage({ type: "init", sessionId });
+    }
     return () => {
       workerRef.current?.terminate();
       workerRef.current = null;
@@ -135,7 +164,7 @@ const Contribute = () => {
 
   // Kick off scraping when isScraping becomes true.
   useEffect(() => {
-    if (!isScraping || !workerRef.current) return;
+    if (!isScraping || !workerRef.current || !isExtensionInstalled) return;
 
     workerRef.current.postMessage({
       type: "get_batch",
@@ -166,9 +195,13 @@ const Contribute = () => {
 
             <Alert className="bg-muted/50 border-primary/20">
               <Info className="h-4 w-4 text-primary" />
-              <AlertTitle>How it works</AlertTitle>
+              <AlertTitle>{isExtensionInstalled ? "How this works" : "Extension required."}</AlertTitle>
               <AlertDescription>
-                This is a distributed scraping system. Keep this tab open to contribute.
+                {
+                  isExtensionInstalled ?
+                    "This is a distributed scraping system. Keep this tab open to contribute." :
+                    "The contribution engine requires SussyGeek extension to work. Click here to get it."
+                }
               </AlertDescription>
             </Alert>
 
@@ -208,20 +241,22 @@ const Contribute = () => {
                 </div>
               </CardContent>
 
-              <CardFooter className="flex justify-between border-t bg-muted/20 py-4">
-                {!isScraping ? (
-                  (currentContributor && (currentContributor?.instituteId === institute?.$id)) ?
-                    <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto bg-blue-600 hover:bg-blue-700">
-                      <RotateCcw className="h-4 w-4" />
-                      Resume
-                    </Button> :
-                    <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto">
-                      <Play className="h-4 w-4" />
-                      Contribute
-                    </Button>
-                ) : (
-                  <Button onClick={handleStopContribution} variant="destructive" className="w-full sm:w-auto ml-auto">Stop Scraping</Button>
-                )}
+              <CardFooter className="flex justify-between border-t bg-muted/20 py-4 min-h-[3.2em]">
+                {isExtensionInstalled && <div id="contribution-btn" className="w-full flex justify-end">
+                  {!isScraping ? (
+                    (currentContributor && (currentContributor?.instituteId === institute?.$id)) ?
+                      <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto bg-blue-600 hover:bg-blue-700">
+                        <RotateCcw className="h-4 w-4" />
+                        Resume
+                      </Button> :
+                      <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto">
+                        <Play className="h-4 w-4" />
+                        Contribute
+                      </Button>
+                  ) : (
+                    <Button onClick={handleStopContribution} variant="destructive" className="w-full sm:w-auto ml-auto">Stop Scraping</Button>
+                  )}
+                </div>}
               </CardFooter>
             </Card>
           </div>

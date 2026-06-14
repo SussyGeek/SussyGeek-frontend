@@ -1,8 +1,9 @@
 import { GeeksForGeeksProfileScraper } from "@/lib/scrapper";
 import { BatchBody } from "@/types/reqbody";
 import { sleep } from "@/utils/GFGWorkerUtils";
-import { getStudentList } from "@/api/services/gfgService";
 import { scrapperWorkerConfig } from "./scrapper.config";
+import { getFrozenStudentList } from "@/api/services/studentService";
+import { apiClients } from "@/api/client";
 
 const BATCH_SIZE = scrapperWorkerConfig.BATCH_SIZE;
 const SLEEP_TIME = scrapperWorkerConfig.PER_BATCH_SLEEP_INTERVAL;
@@ -16,12 +17,9 @@ const getBatch = async (
 ) => {
 
     try {
-        const res = await getStudentList(instituteId);
-        if (!res.success)
-            throw new Error("GeeksForGeeks API failed to get student list. Try again later");
+        const students = await getFrozenStudentList(instituteId);
 
         let studentBatch: Partial<BatchBody>[] = [];
-        const { students } = res.data;
         let secondsElapsed = 0;
 
         const scrapper = new GeeksForGeeksProfileScraper();
@@ -29,14 +27,12 @@ const getBatch = async (
         for (let i = startingPage - 1; i < endingPage; i++) {
 
             let username: string = students[i].handle;
-            let result = await scrapper.getProfileData(username);
+            let user_id: string = students[i].user_id.toString();
+            let result = await scrapper.getProfileData(username, user_id);
 
             if (result.success === false) {
                 throw Error("Scrapping failed. GFG Server error.");
             }
-
-            let data = result.data;
-            data.id = students[i].user_id.toString();
 
             studentBatch.push(result.data);
             await sleep(INTERVAL);
@@ -65,6 +61,11 @@ const getBatch = async (
 
 onmessage = async (e) => {
     const msg = e.data;
+
+    if (msg.type === "init") {
+        apiClients.setSessionId(msg.sessionId);
+        return;
+    }
 
     if (msg.type === "get_batch") {
         const batchSize = msg.batchSize ?? BATCH_SIZE;

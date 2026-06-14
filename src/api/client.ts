@@ -11,6 +11,8 @@ class Clients {
   Geeksforgeeks_: AxiosInstance;
   Geeksforgeeks: GfgApiClient;
   Backend: BackendClient;
+  private _sessionId: string | null = null;
+
   constructor() {
     this.Backend_ = axios.create({
       baseURL: API_URL,
@@ -30,10 +32,19 @@ class Clients {
     this.Backend = this.Backend_;
   }
 
+  /**
+   * Set the session ID manually (used in Web Workers where localStorage is unavailable).
+   */
+  setSessionId(sessionId: string) {
+    this._sessionId = sessionId;
+  }
+
   invokeInterceptors() {
     this.Backend_.interceptors.request.use(
       (config) => {
-        const sessionId = localStorage.getItem('sessionId');
+        const sessionId = typeof localStorage !== 'undefined'
+          ? localStorage.getItem('sessionId')
+          : this._sessionId;
         if (sessionId) {
           config.headers['Authorization'] = `Bearer ${sessionId}`;
         }

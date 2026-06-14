@@ -19,17 +19,14 @@ export class GeeksForGeeksProfileScraper {
     constructor() {
         this.baseUrl = 'https://www.geeksforgeeks.org/profile/';
         this.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
-            'Referer': 'https://www.geeksforgeeks.org/',
-            'Upgrade-Insecure-Requests': '1',
-            'Cache-Control': 'max-age=0',
         };
     }
 
     getProfileData = async (
-        username: string
+        username: string,
+        user_id: string
     ): Promise<Success<Partial<BatchBody>> | Failure> => {
         try {
             const url = `${this.baseUrl}${username}?tab=activity`;
@@ -42,7 +39,7 @@ export class GeeksForGeeksProfileScraper {
             });
 
             const html = response.data;
-            return this.fallbackRegexExtraction(html, username);
+            return this.fallbackRegexExtraction(html, username, user_id);
 
         } catch (error: any) {
             console.error(`[${username}] Fatal Error:`, error.message);
@@ -56,7 +53,8 @@ export class GeeksForGeeksProfileScraper {
 
     extractUserData = (
         html: string, // Fix required!
-        username: string) => {
+        username: string,
+        user_id: string) => {
         // Look for the userData object in the page props
         // Pattern: "userData":{"message":"data retrieved successfully","data":{...}
         const userDataMatch = html.match(/"userData":\s*(\{[^}]*"data":\{[^}]*\}[^}]*\})/);
@@ -75,6 +73,7 @@ export class GeeksForGeeksProfileScraper {
                     return {
                         success: true,
                         data: {
+                            id: user_id,
                             username: username,
                             fullName: d.name,
                             institution: d.institute_name,
@@ -98,7 +97,8 @@ export class GeeksForGeeksProfileScraper {
 
     fallbackRegexExtraction = (
         html: string,
-        username: string): Success<Partial<BatchBody>> => {
+        username: string,
+        user_id: string): Success<Partial<BatchBody>> => {
         // Extract values - improved to handle escaped strings better
         const extract = (key: string) => {
             // This regex captures values between quotes/escaped quotes and stops at comma, quote, or brace
@@ -184,6 +184,7 @@ export class GeeksForGeeksProfileScraper {
         return {
             success: true,
             data: {
+                id: user_id,
                 username: username,
                 fullName: name || undefined,
                 institution: institute || undefined,

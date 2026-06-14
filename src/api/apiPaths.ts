@@ -21,6 +21,12 @@ export const apiPaths = {
             both: "/contribute/get/both" // usage: both/${instituteId}/${username}
         },
         stop: "/contribute/stop" // usage /contribute/stop/${instituteId}
+    },
+    students: {
+        getFrozenList: (instituteId: string) => `/student/institute/${instituteId}/list/frozen`,
+        getRegularList: (instituteId: string) => `/student/institute/${instituteId}/list/regular`,
+        getSortedList: (instituteId: string) => `/student/institute/${instituteId}/list/sorted`,
+        search: "/student/search"
     }
 };
 

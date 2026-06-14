@@ -91,3 +91,12 @@ export type typeStopContributionReturnFailure = {
     success: boolean,
     error: string
 };
+
+// Student Service types
+
+export type typeFrozenListSuccess = typeBackendSuccess<{
+    students: {
+        handle: string,
+        user_id: number
+    }[]
+}>;

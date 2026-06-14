@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Search, Users, Award, TrendingUp } from "lucide-react";
+import { Search, Users, Award, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,14 +13,56 @@ import { Institution } from "@/types/appwrite";
 import { InstituteStatsCardData } from "@/data/genericData";
 import InstituteStatsCard from "@/components/InstituteDetail/InstituteStatsCard";
 import InstitutionDetailSkeleton from "@/components/InstitutionDetailSkeleton";
+import { useStudents, SortField, SortOrder } from "@/hooks/useStudents";
+import { searchStudents } from "@/api/services/studentService";
 
 const InstitutionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [institute, setInstitute] = useState<Institution | null>(null);
+  const [sortBy, setSortBy] = useState<SortField>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const { students, isLoading: isStudentsLoading, hasMore, loadMore } = useStudents(id, sortBy, sortOrder);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[] | null>(null);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [branchFilter, setBranchFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setIsSearchLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchLoading(true);
+      const response = await searchStudents(id as string, searchQuery.trim());
+      if (response.success && response.data) {
+        setSearchResults(response.data);
+      } else {
+        setSearchResults([]);
+      }
+      setIsSearchLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, id]);
+
+  const handleSort = (field: SortField) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const renderSortArrow = (field: SortField) => {
+    if (sortBy !== field) return null;
+    return sortOrder === 'asc' ? <ArrowUp className="w-4 h-4 inline-block ml-1" /> : <ArrowDown className="w-4 h-4 inline-block ml-1" />;
+  };
 
   useEffect(() => {
     const fetchCollege = async () => {
@@ -119,7 +161,7 @@ const InstitutionDetail = () => {
             </div>
 
             {/* Students Table */}
-            {[].length > 0 ? ( // changed from filtered students to []
+            {students.length > 0 ? (
               <div className="border rounded-md">
                 <Table>
                   <TableHeader>
@@ -127,37 +169,88 @@ const InstitutionDetail = () => {
                       <TableHead>Rank</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Branch</TableHead>
-                      <TableHead className="text-right">Score</TableHead>
-                      <TableHead className="text-right">Problems Solved</TableHead>
+                      <TableHead 
+                        className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleSort('score')}
+                      >
+                        Score {renderSortArrow('score')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleSort('solved')}
+                      >
+                        Problems Solved {renderSortArrow('solved')}
+                      </TableHead>
+                      <TableHead 
+                        className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleSort('streak')}
+                      >
+                        Streak {renderSortArrow('streak')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {([/* filteredStudents */] as any[]).map((student, index) => ( // changed from filtered students to []
-                      <TableRow key={student.id}>
-                        <TableCell className="font-medium">{index + 1}</TableCell>
-                        <TableCell>
-                          <a
-                            href={student.profileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {student.name}
-                          </a>
+                    {isSearchLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                          Searching...
                         </TableCell>
-                        <TableCell>{student.branch}</TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {student.score.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">{student.problemsSolved}</TableCell>
                       </TableRow>
-                    ))}
+                    ) : (searchResults !== null ? searchResults : students).length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                          {searchResults !== null ? "No students found with this name." : "No students available."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      (searchResults !== null ? searchResults : students).map((student, index) => (
+                        <TableRow key={student.$id || index}>
+                          <TableCell className="font-medium">{index + 1}</TableCell>
+                          <TableCell>
+                            <a
+                              href={`https://auth.geeksforgeeks.org/user/${student.username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {student.name}
+                            </a>
+                          </TableCell>
+                          <TableCell>{student.branch || '-'}</TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {student.score ? student.score.toLocaleString() : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">{student.problemsSolved || student.solved || '-'}</TableCell>
+                          <TableCell className="text-right">{student.streak || '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
+
+                {searchResults === null && hasMore && (
+                  <div className="flex justify-center p-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      onClick={loadMore} 
+                      disabled={isStudentsLoading}
+                    >
+                      {isStudentsLoading ? "Loading..." : "Load More"}
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No students found matching your criteria.</p>
+              <div className="text-center py-12 w-full flex flex-col gap-4 items-center">
+                <img
+                  src="/illustrations/list-empty.avif"
+                  className="size-[12vw]"
+                  onError={(e) => { e.currentTarget.src = "/illustrations/empty-list.avif"; }}
+                />
+                <div className="flex flex-col">
+                  <p className="font-medium text-xl">No students available.</p>
+                  <p className="text-md text-gray-600">Help expand the list by contributing.</p>
+                </div>
               </div>
             )}
           </CardContent>
