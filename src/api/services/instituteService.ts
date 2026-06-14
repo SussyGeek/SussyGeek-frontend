@@ -7,7 +7,8 @@ export const getInstitute = async (
     id: string | null,
     name: string,
     page: number,
-    limit = 16
+    limit = 16,
+    status = 'all'
 ): Promise<
     typeGetInstituteReturnSuccess |
     typeGetInstituteReturnFailure
@@ -15,11 +16,11 @@ export const getInstitute = async (
     try {
         let url = apiPaths.institute.get;
         if (name?.trim()) {
-            url += `?name=${name}`;
+            url += `?name=${name}&status=${status}`;
         } else if (id?.trim()) {
             url += `?id=${id}`;
         } else {
-            url += `?page=${page}&limit=${limit}`;
+            url += `?page=${page}&limit=${limit}&status=${status}`;
         }
 
         const response = await apiClients.Backend.get<typeBackendSuccess<Institution[]>>(url);
@@ -29,6 +30,27 @@ export const getInstitute = async (
         };
     } catch (err: any) {
         console.error('[instituteService.getInstitute]:', err);
+        return {
+            success: false,
+            error: err?.response?.data?.message || err?.message || 'Server error'
+        };
+    }
+};
+
+export const searchInstitutes = async (
+    name: string,
+    limit = 12,
+    status = 'all'
+): Promise<typeGetInstituteReturnSuccess | typeGetInstituteReturnFailure> => {
+    try {
+        const url = `${apiPaths.institute.search}?name=${name}&limit=${limit}&status=${status}`;
+        const response = await apiClients.Backend.get<typeBackendSuccess<Institution[]>>(url);
+        return {
+            ...response,
+            data: response.data
+        };
+    } catch (err: any) {
+        console.error('[instituteService.searchInstitutes]:', err);
         return {
             success: false,
             error: err?.response?.data?.message || err?.message || 'Server error'

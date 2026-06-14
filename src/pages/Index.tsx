@@ -20,7 +20,11 @@ const Index = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // To be dealt with later.
+    if (searchQuery.trim()) {
+      navigate(`/institutions?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/institutions');
+    }
   };
 
   useEffect(() => {

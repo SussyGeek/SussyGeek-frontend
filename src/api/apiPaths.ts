@@ -2,6 +2,7 @@ export const apiPaths = {
     institute: {
         get: "/institute/list",
         add: "/institute/add",
+        search: "/institute/search",
         update: "/institute/update" // unused
     },
     users: {
