@@ -1,12 +1,12 @@
 import { apiClients } from '../client';
 import { apiPaths } from '../apiPaths';
-import { typeBackendSuccess, typeCounters } from '@/types/res_body';
+import { BackendSuccess, CountersResponse } from '@/types/apiResponses';
 
 export type CounterRow = { name: string; counter: number };
 
 export async function getStats() {
     try {
-        const { data: counters } = await apiClients.Backend.get<typeBackendSuccess<typeCounters>>(apiPaths.counters.get);
+        const { data: counters } = await apiClients.Backend.get<BackendSuccess<CountersResponse>>(apiPaths.counters.get);
         return { success: true, data: counters };
     } catch (err: any) {
         console.error("[counterService.getStats]:", err);

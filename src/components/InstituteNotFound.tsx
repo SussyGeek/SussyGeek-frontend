@@ -1,7 +1,7 @@
-import React from 'react'
+// removed react import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const InstituteNotFound = () => {
     const navigate = useNavigate();

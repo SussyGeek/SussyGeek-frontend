@@ -36,6 +36,13 @@ export interface Institution {
   $updatedAt?: string
 }
 
+export interface InstituteBlock {
+  status: number;
+  startPage: number;
+  endPage: number;
+  percentage: number;
+}
+
 
 export interface ContributionRow {
   uid: string;

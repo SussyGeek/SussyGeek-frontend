@@ -1,14 +1,11 @@
-import { CircleAlert, Play, StopCircle } from "lucide-react"
+import { CircleAlert, Play } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { Button } from "../ui/button"
 
 
 export const ActiveSession = ({ 
-    instituteName, 
-    instituteId
+    instituteName
 }: {
-    instituteName: string, 
-    instituteId: string
+    instituteName: string
 }) => {
   return (
     <Card className="bg-muted/30 hover:bg-muted/40 select-none group border-dashed group">

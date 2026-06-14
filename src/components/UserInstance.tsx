@@ -1,5 +1,5 @@
 import { User2 } from 'lucide-react';
-import { Button } from './ui/button';
+// removed Button
 
 const UserInstance = (
     

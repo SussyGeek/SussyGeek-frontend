@@ -13,11 +13,12 @@ import GuidelinesCard from "@/components/Contributor/GuidelinesCard";
 import ActiveSession from "@/components/Contributor/ActiveSession";
 import Modal from "@/components/Contributor/Modal";
 import InstituteNotFound from "@/components/InstituteNotFound";
+import ContributionSkeleton from "@/components/Contributor/ContributionSkeleton";
 import { useContribute } from "@/hooks/useContribute";
 import { useEffect, useRef, useState } from "react";
 import { SessionState } from "@/types/state_types";
 import { contributeBatch, pingContributionSendPage } from "@/api/services/contributionService";
-import { RunMsgFailure, RunMsgSuccess } from "@/types/worker_types";
+import { BatchMsg, OptimisticUpdate } from "@/types/worker_types";
 import { scrapperWorkerConfig } from "@/workers/scrapper.config";
 
 const Contribute = () => {
@@ -38,6 +39,11 @@ const Contribute = () => {
       blockSize: scrapperWorkerConfig.BLOCK_SIZE
     }
   });
+
+  const [optimisticCounters, setOptimisticCounters] = useState({
+    totalSecondsElapsed: 0,
+    totalStudentsScrapped: 0
+  });
   const [isExtensionInstalled, setIsExtensionInstalled] = useState<boolean>(false);
 
   const {
@@ -56,23 +62,28 @@ const Contribute = () => {
     handleStartContribution,
     handleStopContribution,
     confirmContribution,
-    pauseContribution
+    pauseContribution,
+    isLoading
   } = useContribute(id, setSessionState);
 
   const workerRef = useRef<Worker | null>(null);
   const sessionStateRef = useRef(sessionState);
+  const isScrapingRef = useRef(isScraping);
 
   // Keep ref in sync with state so onmessage always reads current values.
   useEffect(() => {
     sessionStateRef.current = sessionState;
   }, [sessionState]);
 
+  useEffect(() => {
+    isScrapingRef.current = isScraping;
+  }, [isScraping]);
+
   // Listen for SussyGeek extension. Otherwise, can't contribute. 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
 
     const handler = () => {
-      console.log("Detected SussyGeek extension");
       setIsExtensionInstalled(true);
       // Extension found — stop polling
       if (interval) clearInterval(interval);
@@ -113,47 +124,71 @@ const Contribute = () => {
     const worker = workerRef.current;
     if (!worker) return;
 
-    worker.onmessage = async (msg: MessageEvent<RunMsgSuccess | RunMsgFailure>) => {
-      try {
-        if (!msg.data.success)
-          throw new Error(msg.data.message || "Server error. Try again later.");
-        const { studentBatch, secondsElapsed } = msg.data.data;
-        const res = await contributeBatch(secondsElapsed, institute.$id, studentBatch);
-        if (!res.success)
-          throw new Error(res.message || "Server error. Try again later.");
-        const currentConfig = sessionStateRef.current.config;
+    worker.onmessage = async (msg: MessageEvent<OptimisticUpdate | BatchMsg>) => {
+      if (msg.data.type === "BATCH") {
+        try {
+          if (!msg.data.success)
+            throw new Error(msg.data.message || "Server error. Try again later.");
+          const { studentBatch, secondsElapsed } = msg.data.data;
+          const res = await contributeBatch(secondsElapsed, institute.$id, studentBatch);
+          if (!res.success)
+            throw new Error(res.message || "Server error. Try again later.");
+          const currentConfig = sessionStateRef.current.config;
 
-        const pingRes = res.data.isBlockComplete
-          ? await pingContributionSendPage(institute.$id)
-          : res;
+          const pingRes = res.data.isBlockComplete
+            ? await pingContributionSendPage(institute.$id)
+            : res;
 
 
-        if (!pingRes.success)
-          throw new Error(pingRes.message || "Server error. Try again later.");
+          if (!pingRes.success)
+            throw new Error(pingRes.message || "Server error. Try again later.");
 
-        const newConfig = {
-          ...currentConfig,
-          blockStartingPage: pingRes.data.startingPage,
-          blockEndingPage: pingRes.data.endingPage,
-          currentBlockId: pingRes.data.assignedBlockId,
-        };
+          const newConfig = {
+            ...currentConfig,
+            blockStartingPage: pingRes.data.startingPage,
+            blockEndingPage: pingRes.data.endingPage,
+            currentBlockId: pingRes.data.assignedBlockId,
+          };
 
-        setSessionState((prev: SessionState) => ({
-          totalSessionSecondsElapsed: prev.totalSessionSecondsElapsed + secondsElapsed,
-          scrappedStudentCount: prev.scrappedStudentCount + studentBatch.length,
-          config: newConfig,
+          setSessionState((prev: SessionState) => ({
+            totalSessionSecondsElapsed: prev.totalSessionSecondsElapsed + secondsElapsed,
+            scrappedStudentCount: prev.scrappedStudentCount + studentBatch.length,
+            config: newConfig,
+          }));
+
+          setOptimisticCounters({
+            totalSecondsElapsed: 0,
+            totalStudentsScrapped: 0
+          });
+
+          if (isScrapingRef.current) {
+            worker.postMessage({
+              type: "get_batch",
+              startingPage: pingRes.data.startingPage,
+              endingPage: pingRes.data.endingPage,
+              instituteId: institute.$id,
+              batchSize: newConfig.batchSize,
+            });
+          }
+        } catch (err: any) {
+          pauseContribution(err?.message || "Server error. Try again later.");
+        }
+      } else if (
+        msg.data.type === "UPDATE_OPTIMISTIC_STUDENTS" ||
+        msg.data.type === "UPDATE_OPTIMISTIC_SECONDS"
+      ) {
+        const msgType = msg.data.type;
+
+        setOptimisticCounters(prev => ({
+          totalStudentsScrapped:
+            msgType === "UPDATE_OPTIMISTIC_STUDENTS" ?
+              prev.totalStudentsScrapped + 1 :
+              prev.totalStudentsScrapped,
+          totalSecondsElapsed:
+            msgType === "UPDATE_OPTIMISTIC_SECONDS" ?
+              prev.totalSecondsElapsed + 1 :
+              prev.totalSecondsElapsed
         }));
-
-        worker.postMessage({
-          type: "get_batch",
-          startingPage: pingRes.data.startingPage,
-          endingPage: pingRes.data.endingPage,
-          instituteId: institute.$id,
-          batchSize: newConfig.batchSize,
-        });
-      } catch (err: any) {
-        console.log("Contribution paused: ", err?.message || "Server error");
-        pauseContribution(err?.message || "Server error. Try again later.");
       }
     };
 
@@ -164,16 +199,25 @@ const Contribute = () => {
 
   // Kick off scraping when isScraping becomes true.
   useEffect(() => {
-    if (!isScraping || !workerRef.current || !isExtensionInstalled) return;
+    if (!workerRef.current || !isExtensionInstalled) return;
 
-    workerRef.current.postMessage({
-      type: "get_batch",
-      startingPage: sessionState.config.blockStartingPage,
-      endingPage: sessionState.config.blockEndingPage,
-      instituteId: institute.$id,
-      batchSize: sessionState.config.batchSize,
-    });
+    if (isScraping) {
+      workerRef.current.postMessage({
+        type: "get_batch",
+        startingPage: sessionState.config.blockStartingPage,
+        endingPage: sessionState.config.blockEndingPage,
+        instituteId: institute.$id,
+        batchSize: sessionState.config.batchSize,
+      });
+    } else {
+      workerRef.current.postMessage({ type: "stop" });
+      setOptimisticCounters({ totalSecondsElapsed: 0, totalStudentsScrapped: 0 });
+    }
   }, [isScraping]);
+
+  if (isLoading) {
+    return <ContributionSkeleton />;
+  }
 
   if (!institute) {
     return <InstituteNotFound />;
@@ -221,14 +265,14 @@ const Contribute = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <UserCard
                       username={currentContributor?.username ?? "You"}
-                      timeSpent={sessionState.totalSessionSecondsElapsed}
-                      scrappedCount={sessionState.scrappedStudentCount}
+                      timeSpent={sessionState.totalSessionSecondsElapsed + optimisticCounters.totalSecondsElapsed}
+                      scrappedCount={sessionState.scrappedStudentCount + optimisticCounters.totalStudentsScrapped}
                     />
                     <ContributorsCard activeContributors={activeContributors} />
                     <StateCounterCard
                       Icon={Users}
                       title="Progress"
-                      scrappedCount={institute?.scrappedStudents ?? 0}
+                      scrappedCount={(institute?.scrappedStudents ?? 0) + optimisticCounters.totalStudentsScrapped}
                       totalCount={institute?.totalStudents ?? 0}
                     />
                     <StateCounterCard
@@ -270,7 +314,6 @@ const Contribute = () => {
                 navigation(`/contribute/${prevInstitute?.id}`)
               }}>
                 <ActiveSession
-                  instituteId={prevInstitute?.id}
                   instituteName={prevInstitute?.name}
                 />
               </button>

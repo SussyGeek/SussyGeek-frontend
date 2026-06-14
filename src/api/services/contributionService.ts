@@ -1,7 +1,7 @@
 import { apiClients } from '../client';
 import { apiPaths } from '../apiPaths';
-import { BatchBody } from "@/types/reqbody";
-import { typeGetAllContributorsReturnSuccess, typePostContributionPingReturnSuccess, typePostContributionReturnSuccess, typeStopContributionReturnSuccess } from '@/types/res_body';
+import { BatchBody } from "@/types/requests";
+import { GetAllContributorsSuccessResponse, PostContributionPingSuccessResponse, PostContributionSuccessResponse, StopContributionSuccessResponse } from '@/types/apiResponses';
 import { ContributionRow } from '@/types/appwrite';
 
 export const stopContribution = async (
@@ -9,7 +9,7 @@ export const stopContribution = async (
 ) => {
     try {
         const path = `${apiPaths.contribute.stop}/${instituteId}`;
-        const res = await apiClients.Backend.patch<typeStopContributionReturnSuccess>(path);
+        const res = await apiClients.Backend.patch<StopContributionSuccessResponse>(path);
         return res;
     } catch (err: any) {
         return {
@@ -23,9 +23,9 @@ export const contributeBatch = async (
     seconds: number,
     instituteId: string,
     students: Partial<BatchBody>[]
-): Promise<typePostContributionReturnSuccess | { success: false, message: string }> => {
+): Promise<PostContributionSuccessResponse | { success: false, message: string }> => {
     try {
-        const res = await apiClients.Backend.post<typePostContributionReturnSuccess>(apiPaths.contribute.batch, {
+        const res = await apiClients.Backend.post<PostContributionSuccessResponse>(apiPaths.contribute.batch, {
             instituteId,
             students,
             seconds
@@ -42,9 +42,9 @@ export const contributeBatch = async (
 
 export const pingContributionSendPage = async (
     instituteId: string,
-): Promise<typePostContributionPingReturnSuccess | { success: false, message: string }> => {
+): Promise<PostContributionPingSuccessResponse | { success: false, message: string }> => {
     try {
-        const res = await apiClients.Backend.post<typePostContributionReturnSuccess>(apiPaths.contribute.batch, {
+        const res = await apiClients.Backend.post<PostContributionSuccessResponse>(apiPaths.contribute.batch, {
             instituteId,
             students: [],
             seconds: 0
@@ -69,7 +69,7 @@ export const getAllContributors = async (
             `${apiPaths.contribute.get.both}/${instituteId}/${username}` :
             `${apiPaths.contribute.get.institute}/${instituteId}`;
 
-        const response = await apiClients.Backend.get<typeGetAllContributorsReturnSuccess>(path);
+        const response = await apiClients.Backend.get<GetAllContributorsSuccessResponse>(path);
 
         let prevSessions = null;
         let currentContributor: null | ContributionRow = null;

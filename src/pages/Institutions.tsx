@@ -40,7 +40,7 @@ const Institutions = () => {
       if (query) {
         const response = await searchInstitutes(query, 12, statusFilter);
         if (isMounted && response.success && response.data) {
-          setInstitutes(response.data);
+          setInstitutes(response.data as Institution[]);
         }
       } else {
         if (defaultInstitutesCache.current !== null && statusFilter === "all") {
@@ -48,9 +48,9 @@ const Institutions = () => {
         } else {
           const response = await getInstitute(null, '', 1, 12, statusFilter);
           if (isMounted && response.success && response.data) {
-            setInstitutes(response.data);
+            setInstitutes(response.data as Institution[]);
             if (statusFilter === "all") {
-              defaultInstitutesCache.current = response.data;
+              defaultInstitutesCache.current = response.data as Institution[];
             }
           }
         }

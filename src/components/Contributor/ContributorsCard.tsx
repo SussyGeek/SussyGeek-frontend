@@ -48,49 +48,49 @@ export const Contributor = ({
 
 
 const ContributorsCard = ({
-    activeContributors,
-}:{
-    activeContributors: any // Fix pls
+  activeContributors,
+}: {
+  activeContributors: any // Fix pls
 }
 ) => {
 
-    return (
-        <div className="bg-secondary/10 rounded-lg select-none">
-            <div className="p-4">
-                <div className="flex gap-1">
-                    <h3 className="text-xl pl-2 text-muted-foreground/80">Contributors</h3>
-                </div>
-                <div>
-                    { activeContributors && activeContributors.length > 0 ? 
-                    <div className="px-4 py-3 grid transition-all min-h-[10em] duration-200 grid-cols-5 gap-y-3">
-                        {activeContributors.map((contributor: any, i: number) => (
-                            <Contributor 
-                                key={i}
-                                name={contributor.username}
-                                scrappedStudents={contributor.students}
-                                seconds={contributor.seconds}
-                            />
-                        ))}
-                    </div> :
-                    <div className="w-full flex flex-col min-h-[10em] justify-center gap-2 select-none">
-                        <div className="w-full flex justify-center">
-                            <div className="bg-[#C6C3C3] rounded-full w-10 h-10 grid place-content-center opacity-25">
-                                <X size={60} className="text-white"/>
-                            </div>
-                        </div>
-                        <div className="m-0 p-0">
-                            <p className="text-center text-sm opacity-25">No scrappers active.</p>
-                            <p className="text-center text-xs opacity-25">Click contribute to start</p>
-                        </div>
-                    </div> 
-                        
-                    }
-                </div>
-                
-            </div>
-            
+  return (
+    <div className="bg-secondary/10 rounded-lg select-none">
+      <div className="p-4">
+        <div className="flex gap-1">
+          <h3 className="text-xl pl-2 text-muted-foreground/80">Contributors</h3>
         </div>
-    )
+        <div>
+          {activeContributors && activeContributors.length > 0 ?
+            <div className="px-4 py-3 grid transition-all min-h-[10em] duration-200 grid-cols-5 gap-y-3">
+              {activeContributors.map((contributor: any, i: number) => (
+                <Contributor
+                  key={i}
+                  name={contributor.user.username}
+                  scrappedStudents={contributor.students}
+                  seconds={contributor.seconds}
+                />
+              ))}
+            </div> :
+            <div className="w-full flex flex-col min-h-[10em] justify-center gap-2 select-none">
+              <div className="w-full flex justify-center">
+                <div className="bg-[#C6C3C3] rounded-full w-10 h-10 grid place-content-center opacity-25">
+                  <X size={60} className="text-white" />
+                </div>
+              </div>
+              <div className="m-0 p-0">
+                <p className="text-center text-sm opacity-25">No scrappers active.</p>
+                <p className="text-center text-xs opacity-25">Click contribute to start</p>
+              </div>
+            </div>
+
+          }
+        </div>
+
+      </div>
+
+    </div>
+  )
 }
 
 export default ContributorsCard

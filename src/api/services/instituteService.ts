@@ -1,6 +1,6 @@
 import { apiClients } from '../client';
 import { apiPaths } from '../apiPaths';
-import { typeBackendSuccess, typeGetInstituteReturnFailure, typeGetInstituteReturnSuccess } from '@/types/res_body';
+import { BackendSuccess, GetInstituteFailureResponse, GetInstituteSuccessResponse } from '@/types/apiResponses';
 import { Institution } from '@/types/appwrite';
 
 export const getInstitute = async (
@@ -10,8 +10,8 @@ export const getInstitute = async (
     limit = 16,
     status = 'all'
 ): Promise<
-    typeGetInstituteReturnSuccess |
-    typeGetInstituteReturnFailure
+    GetInstituteSuccessResponse |
+    GetInstituteFailureResponse
 > => {
     try {
         let url = apiPaths.institute.get;
@@ -23,7 +23,7 @@ export const getInstitute = async (
             url += `?page=${page}&limit=${limit}&status=${status}`;
         }
 
-        const response = await apiClients.Backend.get<typeBackendSuccess<Institution[]>>(url);
+        const response = await apiClients.Backend.get<BackendSuccess<Institution[]>>(url);
         return {
             ...response,
             data: id?.trim() ? response.data[0] : response.data
@@ -41,10 +41,10 @@ export const searchInstitutes = async (
     name: string,
     limit = 12,
     status = 'all'
-): Promise<typeGetInstituteReturnSuccess | typeGetInstituteReturnFailure> => {
+): Promise<GetInstituteSuccessResponse | GetInstituteFailureResponse> => {
     try {
         const url = `${apiPaths.institute.search}?name=${name}&limit=${limit}&status=${status}`;
-        const response = await apiClients.Backend.get<typeBackendSuccess<Institution[]>>(url);
+        const response = await apiClients.Backend.get<BackendSuccess<Institution[]>>(url);
         return {
             ...response,
             data: response.data

@@ -1,4 +1,4 @@
-import { BatchBody } from "@/types/reqbody";
+import { BatchBody } from "@/types/requests";
 import axios from "axios";
 
 type Success<T> = {

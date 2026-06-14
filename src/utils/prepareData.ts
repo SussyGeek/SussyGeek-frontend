@@ -10,7 +10,7 @@ export const prepInstitutionObject = (
     state: string,
     country: string
   }
-): Institution => (
+): Omit<Institution, "$id" | "$createdAt" | "$updatedAt"> => (
   {
     name,
     slug,
@@ -18,8 +18,10 @@ export const prepInstitutionObject = (
     state: location?.state ?? '',
     country: location?.country ?? '',
     score: 0,
-    students: registeredGeeks ?? 0,
+    totalStudents: registeredGeeks ?? 0,
     scrappedStudents: 0,
+    problemsSolved: 0,
+    blocks: [],
     status: "Incomplete"
   }
 );

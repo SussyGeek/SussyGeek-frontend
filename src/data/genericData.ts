@@ -1,4 +1,4 @@
-import { CounterKey, IStatsCardData } from "@/types/generic";
+import { IStatsCardData } from "@/types/generic";
 
 export const guideliens = [
   "Offensive usernames will be removed immediately.",

@@ -1,10 +1,10 @@
 import { apiClients } from '../client';
 import { apiPaths } from '../apiPaths';
-import { typeUserMe } from '@/types/res_body';
+import { UserMeResponse } from '@/types/apiResponses';
 
-export const getMe = async (): Promise<typeUserMe | null> => {
+export const getMe = async (): Promise<UserMeResponse | null> => {
     try {
-        const userData = await apiClients.Backend.get<typeUserMe>(apiPaths.users.me);
+        const userData = await apiClients.Backend.get<UserMeResponse>(apiPaths.users.me);
         return userData;
     } catch (err) {
         console.log("[userService]: Log In instance not found.");

@@ -1,11 +1,11 @@
-import { typeFrozenListSuccess } from "@/types/res_body";
+import { FrozenListSuccessResponse } from "@/types/apiResponses";
 import { apiPaths } from "../apiPaths"
 import { apiClients } from "../client"
 
 
 export const getFrozenStudentList = async (instituteId: string) => {
     const urlEndpoint = apiPaths.students.getFrozenList(instituteId);
-    const { data } = await apiClients.Backend.get<typeFrozenListSuccess>(urlEndpoint);
+    const { data } = await apiClients.Backend.get<FrozenListSuccessResponse>(urlEndpoint);
     return data.students;
 };
 

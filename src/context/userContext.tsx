@@ -6,13 +6,17 @@ type UserContextType = {
     isContributing: boolean;
     isReady: boolean;
     refreshAuth: () => Promise<void> | void;
+    markContributingActive: () => void;
+    markContributingInactive: () => void;
 };
 
 const UserContext = createContext<UserContextType>({
     username: null,
     isContributing: false,
     isReady: false,
-    refreshAuth: () => undefined
+    refreshAuth: () => undefined,
+    markContributingActive: () => { },
+    markContributingInactive: () => { }
 });
 
 export const UserProvider = (
@@ -29,16 +33,30 @@ export const UserProvider = (
         setIsReady(true);
     }
 
+    const markContributingActive = () => {
+        if (username && isReady)
+            setIsContributing(true);
+    }
+
+    const markContributingInactive = () => {
+        if (username && isReady)
+            setIsContributing(false);
+    }
+
     useEffect(() => {
         if (!isReady) resolveAuth();
     }, [isReady]);
+
+
 
     return (
         <UserContext.Provider value={{
             username,
             isContributing,
             isReady,
-            refreshAuth: resolveAuth
+            refreshAuth: resolveAuth,
+            markContributingActive,
+            markContributingInactive
         }}>
             {children}
         </UserContext.Provider>

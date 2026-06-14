@@ -43,7 +43,7 @@ const Index = () => {
     const fetchColleges = async () => {
       const institute = await getInstitute(null, '', page, limit);
       if (institute.success && institute.data) {
-        setInstitutes(institute.data);
+        setInstitutes(institute.data as Institution[]);
       }
     }
 
@@ -113,7 +113,7 @@ const Index = () => {
               id={college.$id || ""}
               name={college.name}
               score={college.score}
-              students={college.students}
+              students={college.totalStudents}
               status={college.status}
               key={college.$id || idx} />
           ))}

@@ -21,7 +21,7 @@ export type GfgApiClient = {
 
 // Service types:
 
-export type totalStudentReturnType = {
+export type TotalStudentResponse = {
     success: true,
     data: { students: GFGStudentStats[] }
 } | { success: false }

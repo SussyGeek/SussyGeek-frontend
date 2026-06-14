@@ -3,31 +3,8 @@ import { BATCH_SIZE, BLOCK_SIZE } from '@/params';
 import { BUCKETS } from '@/data/genericData';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-interface BlockType {
-  status: number,
-  startPage: number,
-  endPage: number,
-  percentage: number
-}
-
-type StateCounterCardPropsType = {
-  Icon: any
-  title: "Progress";
-  scrappedCount: number;
-  totalCount: number;
-} | {
-  Icon: any;
-  title: "Blocks";
-  blocks: BlockType[],
-  studentCount: number
-}
-
-interface BlockPropsType {
-  active: number | null,
-  startPage: number | null,
-  endPage: number | null,
-  percentage: number | null
-}
+import { InstituteBlock } from '@/types/appwrite';
+import { StateCounterCardProps, BlockProps } from '@/types/generic';
 
 function getContributionColor(percent: number | null) {
   if (percent === null || percent === undefined) return "bg-[#F3E2E2]/20";
@@ -39,11 +16,7 @@ function getContributionColor(percent: number | null) {
   return BUCKETS[index];
 }
 
-export const Block = ({
-  percentage,
-  startPage,
-  endPage
-}: BlockPropsType) => {
+export const Block = ({ active, startPage, endPage, percentage }: BlockProps) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -65,9 +38,7 @@ export const Block = ({
 
 
 
-export const StateCounterCard = (
-  props: StateCounterCardPropsType
-) => {
+export const StateCounterCard = (props: StateCounterCardProps) => {
 
   const Blocks = () => {
     return <div>
@@ -96,7 +67,7 @@ export const StateCounterCard = (
   }
 
   const { Icon } = props;
-  let blocks: BlockType[] = [];
+  let blocks: InstituteBlock[] = [];
   let totalBlocks: number = 0;
 
   if (props.title === "Blocks") {

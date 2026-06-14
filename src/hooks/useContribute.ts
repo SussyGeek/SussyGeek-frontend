@@ -20,6 +20,7 @@ export const useContribute = (
   // Institute
   const [institute, setInstitute] = useState<any>(null);
   const [prevInstitute, setPrevInstitute] = useState<any>(null); // Institute rows of previous session.
+  const [isLoading, setIsLoading] = useState(true);
 
   // Contributions
   const [topContributors, setTopContributors] = useState<any[]>([]);
@@ -43,6 +44,7 @@ export const useContribute = (
     if (!auth?.isReady || !id) return;
 
     const getContributionData = async () => {
+      setIsLoading(true);
       // reset UI for new institute
       setInstitute(null);
       setPrevSessions(null);
@@ -83,10 +85,12 @@ export const useContribute = (
           setPrevSessions(conResult.data.prevSessions); // Previously active session.
         }
       }
+
+      setIsLoading(false);
     };
 
     getContributionData();
-  }, [id, auth?.isReady, auth?.username, auth?.isContributing]);
+  }, [id, auth?.isReady, auth?.username]);
 
   // Fetch previous active session of current user
   useEffect(() => {
@@ -155,6 +159,7 @@ export const useContribute = (
           title: "Contribution Started",
           description: `Joined contribution network for ${institute?.name ?? state?.name ?? '-'}.`
         });
+        auth.markContributingActive();
         return;
       }
       setUsernameModalOpen(true);
@@ -189,6 +194,7 @@ export const useContribute = (
       } else {
         await pingContributionEndpoint();
         setIsScraping(true);
+        auth.markContributingActive();
         setActiveSessionModalOpen(false);
         toast({
           title: "Contribution Started",
@@ -205,13 +211,17 @@ export const useContribute = (
   };
 
   const handleStopContribution = async () => {
+    console.log(auth);
     if (!auth?.username || !auth?.isContributing) return;
     const result = await stopContribution(institute.$id);
     if (!result.success) {
       toast({ title: "Stop failed.", description: "Failed to stop contribution. Session still active." });
       return;
     }
+    // TODO: May be unnecessary refresh as we're already having an optimistic update on that.
+    // Decide.
     await auth.refreshAuth();
+    auth.markContributingInactive();
     setIsScraping(false);
     toast({ title: "Scraping Paused", description: "Progress saved." });
   };
@@ -236,6 +246,7 @@ export const useContribute = (
     confirmContribution,
     handleStopContribution,
     pauseContribution,
-    state
+    state,
+    isLoading
   };
 };
