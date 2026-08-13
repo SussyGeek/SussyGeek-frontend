@@ -3,7 +3,7 @@ import { Play, Info, Users, Box, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import HallofFame from "@/components/HallofFame";
+import ActivityBox from "@/components/ActivityBox";
 import { guideliens } from "@/data/genericData";
 import StateCounterCard from "@/components/Contributor/StateCounterCard";
 import ContributorsCard from "@/components/Contributor/ContributorsCard";
@@ -20,13 +20,18 @@ import { SessionState } from "@/types/state_types";
 import { contributeBatch, pingContributionSendPage } from "@/api/services/contributionService";
 import { BatchMsg, OptimisticUpdate } from "@/types/worker_types";
 import { scrapperWorkerConfig } from "@/workers/scrapper.config";
+import type { ActiveBox } from "@/types/generic";
+import { useChat } from "@/hooks/useChat";
+import { useModal } from "@/hooks/useModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const Contribute = () => {
   const { id } = useParams();
   const navigation = useNavigate();
   const { state } = useLocation();
+  const [activeBox, setActiveBox] = useState<ActiveBox>("HallofFame");
 
-
+  const chatterTool = useChat();
 
   const [sessionState, setSessionState] = useState<SessionState>({
     scrappedStudentCount: 0,
@@ -52,10 +57,6 @@ const Contribute = () => {
     activeContributors,
     currentContributor,
     prevInstitute,
-    activeSessionModalOpen,
-    setActiveSessionModalOpen,
-    usernameModalOpen,
-    setUsernameModalOpen,
     isScraping,
     username,
     setUsername,
@@ -65,6 +66,15 @@ const Contribute = () => {
     pauseContribution,
     isLoading
   } = useContribute(id, setSessionState);
+
+  const {
+    activeSessionModalOpen,
+    usernameModalOpen,
+    openModal,
+    closeModal,
+  } = useModal();
+
+  const auth = useAuth();
 
   const workerRef = useRef<Worker | null>(null);
   const sessionStateRef = useRef(sessionState);
@@ -127,9 +137,10 @@ const Contribute = () => {
     worker.onmessage = async (msg: MessageEvent<OptimisticUpdate | BatchMsg>) => {
       if (msg.data.type === "BATCH") {
         try {
-          if (!msg.data.success)
+          if (!msg.data.success) {
             throw new Error(msg.data.message || "Server error. Try again later.");
-          const { studentBatch, secondsElapsed } = msg.data.data;
+          }
+          const { studentBatch, secondsElapsed, frozenList } = msg.data.data;
           const res = await contributeBatch(secondsElapsed, institute.$id, studentBatch);
           if (!res.success)
             throw new Error(res.message || "Server error. Try again later.");
@@ -156,11 +167,6 @@ const Contribute = () => {
             config: newConfig,
           }));
 
-          setOptimisticCounters({
-            totalSecondsElapsed: 0,
-            totalStudentsScrapped: 0
-          });
-
           if (isScrapingRef.current) {
             worker.postMessage({
               type: "get_batch",
@@ -168,6 +174,7 @@ const Contribute = () => {
               endingPage: pingRes.data.endingPage,
               instituteId: institute.$id,
               batchSize: newConfig.batchSize,
+              frozenList
             });
           }
         } catch (err: any) {
@@ -189,6 +196,11 @@ const Contribute = () => {
               prev.totalSecondsElapsed + 1 :
               prev.totalSecondsElapsed
         }));
+      } else if (
+        msg.data.type === "CONTRIBUTION_STOPPED"
+      ) {
+        // This will be worked on in future if required.
+        console.log("Contribution stopped.");
       }
     };
 
@@ -208,6 +220,7 @@ const Contribute = () => {
         endingPage: sessionState.config.blockEndingPage,
         instituteId: institute.$id,
         batchSize: sessionState.config.batchSize,
+        frozenList: null
       });
     } else {
       workerRef.current.postMessage({ type: "stop" });
@@ -224,7 +237,7 @@ const Contribute = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-24">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -253,7 +266,7 @@ const Contribute = () => {
               <CardHeader className="border-b bg-muted/20">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl">{institute?.name ?? state?.name ?? '-'}</CardTitle>
+                    <CardTitle className="text-2xl text-gray-600">{institute?.name ?? state?.name ?? '-'}</CardTitle>
                     <CardDescription className="mt-1 font-mono text-primary">Code: {id}</CardDescription>
                   </div>
                   <Live isLive={((activeContributors?.length ?? 0) > 0) || isScraping} />
@@ -285,29 +298,62 @@ const Contribute = () => {
                 </div>
               </CardContent>
 
-              <CardFooter className="flex justify-between border-t bg-muted/20 py-4 min-h-[3.2em]">
+              <CardFooter className="flex gap-2 justify-between border-t bg-muted/20 py-4 min-h-[3.2em]">
                 {isExtensionInstalled && <div id="contribution-btn" className="w-full flex justify-end">
                   {!isScraping ? (
                     (currentContributor && (currentContributor?.instituteId === institute?.$id)) ?
-                      <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto bg-blue-600 hover:bg-blue-700">
+                      <Button
+                        onClick={handleStartContribution}
+                        className="w-full sm:w-auto ml-auto bg-blue-600 hover:bg-blue-700">
                         <RotateCcw className="h-4 w-4" />
                         Resume
                       </Button> :
-                      <Button onClick={handleStartContribution} className="w-full sm:w-auto ml-auto">
+                      <Button
+                        onClick={handleStartContribution}
+                        className="w-full sm:w-auto ml-auto"
+                      >
                         <Play className="h-4 w-4" />
                         Contribute
                       </Button>
                   ) : (
-                    <Button onClick={handleStopContribution} variant="destructive" className="w-full sm:w-auto ml-auto">Stop Scraping</Button>
+                    <Button
+                      onClick={handleStopContribution}
+                      variant="destructive"
+                      className="w-full sm:w-auto ml-auto">
+                      Stop Scraping
+                    </Button>
                   )}
                 </div>}
+                <Button
+                  onClick={async () => {
+                    setActiveBox(prev => {
+                      if (prev === "HallofFame") {
+                        if (!auth.username) {
+                          openModal("username");
+                        }
+                        chatterTool.establishConnection();
+                      }
+                      return prev === "HallofFame" ? "ChatBox" : "HallofFame";
+                    });
+
+                  }}
+                  variant="outline"
+                  className="w-full sm:w-auto ml-auto">
+                  {activeBox === "HallofFame" ?
+                    "Switch to Chat" :
+                    "Switch back"
+                  }
+                </Button>
               </CardFooter>
             </Card>
           </div>
 
-          {/* RIGHT COLUMN: Hall of Fame & Guidelines (1/3 width) */}
+          {/* RIGHT COLUMN: Hall of Fame and Chat & Guidelines (1/3 width) */}
           <div className="lg:col-span-1 space-y-6">
-            <HallofFame topContributors={topContributors} />
+            <ActivityBox
+              topContributors={activeBox === "HallofFame" ? topContributors : []}
+              boxType={activeBox}
+            />
             <GuidelinesCard guidelines={guideliens} />
             {prevInstitute &&
               <button className="w-full" onClick={() => {
@@ -325,7 +371,9 @@ const Contribute = () => {
 
       <Modal
         isModalOpen={usernameModalOpen}
-        setIsModalOpen={setUsernameModalOpen}
+        setIsModalOpen={() => {
+          usernameModalOpen ? closeModal("username") : openModal("username")
+        }}
         modalType="usernameSelection"
         confirmContribution={confirmContribution}
         username={username}
@@ -334,7 +382,9 @@ const Contribute = () => {
 
       {prevInstitute && <Modal
         isModalOpen={activeSessionModalOpen}
-        setIsModalOpen={setActiveSessionModalOpen}
+        setIsModalOpen={() => {
+          activeSessionModalOpen ? closeModal("active_session") : openModal("active_session");
+        }}
         modalType="activeSession"
         instituteName={prevInstitute?.name ?? ''}
         onResumeSession={() => {

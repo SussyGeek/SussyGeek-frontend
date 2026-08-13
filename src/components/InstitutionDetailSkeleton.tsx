@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const InstitutionDetailSkeleton = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-24">
       <div className="container mx-auto px-4 py-8">
         {/* Institution Header */}
         <div className="mb-8">

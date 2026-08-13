@@ -10,27 +10,35 @@ import Contribute from "./pages/Contribute";
 import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import { UserProvider } from "./context/userContext";
+import { ChatProvider } from "./context/chatContext";
+import { ModalProvider } from "./context/modalContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <UserProvider>
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-      <Header/>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/institution/:id" element={<InstitutionDetail />} />
-          <Route path="/institutions" element={<Institutions />} />
-          <Route path="/contribute/:id" element={<Contribute />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Header />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/institution/:id" element={<InstitutionDetail />} />
+            <Route path="/institutions" element={<Institutions />} />
+            <Route path="/contribute/:id" element={
+              <ModalProvider>
+                <ChatProvider>
+                  <Contribute />
+                </ChatProvider>
+              </ModalProvider>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   </UserProvider>
 );
 

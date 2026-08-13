@@ -28,7 +28,7 @@ export const MainAreaSkeleton = () => {
         <CardContent className="pt-6">
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
+
               {/* UserCard */}
               <div className="bg-secondary/10 rounded-lg p-4 space-y-5 min-h-[10em]">
                 <Skeleton className="h-7 w-[120px]" />
@@ -92,7 +92,7 @@ export const MainAreaSkeleton = () => {
 export const SidebarSkeleton = () => {
   return (
     <div className="lg:col-span-1 space-y-6">
-      
+
       {/* Hall of Fame */}
       <Card>
         <CardHeader className="bg-muted/30 border-b">
@@ -139,7 +139,7 @@ export const SidebarSkeleton = () => {
 const ContributionSkeleton = () => {
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl pt-24">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <MainAreaSkeleton />
           <SidebarSkeleton />

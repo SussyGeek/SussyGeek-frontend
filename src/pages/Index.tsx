@@ -52,37 +52,64 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 text-center">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-            GeeksForGeeks Institution Rankings
+      <section
+        id="hero-section"
+        className="relative min-h-[560px] overflow-hidden px-4 text-center"
+      >
+        {/* Globe background */}
+        <div
+          className=" absolute left-1/2 top-0 -translate-x-1/2 w-[1400px] h-[560px] bg-[url('/hero-bg-trans.png')] bg-no-repeat bg-center bg-top bg-contain opacity-45 pointer-events-none z-0" />
+
+        {/* Hero content */}
+        <div className="relative z-10 max-w-3xl mx-auto my-100 pt-40 w-full">
+          <div className="w-full flex justify-center">
+            <p className="w-fit rounded-full border border-green-400/50 bg-gradient-to-r from-green-500/15 to-emerald-400/10 px-4 py-1 text-xs font-bold text-green-600 shadow-[0_0_24px_rgba(34,197,94,0.22)] backdrop-blur-sm">
+              GeeksForGeeks Utilities
+            </p>
+          </div>
+
+          <h2 className="my-3 text-3xl md:text-5xl font-bold tracking-tight text-foreground">
+            Search. Compare.{" "}
+            <span className="text-green-500 drop-shadow-[0_0_12px_rgba(34,197,94,0.2)]">
+              Contribute.
+            </span>
           </h2>
-          <p className="text-lg text-muted-foreground">
+
+          <p className="mx-auto my-2 w-fit rounded-full bg-white/60 px-3 py-1 text-base md:text-lg font-medium text-foreground/80 backdrop-blur-sm">
             Discover and compare DSA scores of students across institutions
           </p>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-2xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <form
+            onSubmit={handleSearch}
+            className="flex gap-2 max-w-4xl mx-auto mt-3"
+          >
+            <div
+              className=" relative flex-1 rounded-xl border border-white/70 bg-white/40 backdrop-blur-9xl shadow-[0_8px_32px_rgba(34,197,94,0.15)] ring-1 ring-green-400/2 " >
+              <Search
+                className=" absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-green-700/7 " />
+
               <Input
                 type="text"
                 placeholder="Search by institution name or code..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+                className=" h-12 pl-11 border-1 shadow-none focus-visible:ring-1 placeholder:text-foreground/80 bg-transparent" />
             </div>
-            <Button type="submit">Search</Button>
+
+            <Button
+              type="submit"
+              className="h-12 rounded-xl bg-green-600 px-6 shadow-[0_6px_20px_rgba(34,197,94,0.25)] hover:bg-green-700"
+            >
+              Search
+            </Button>
           </form>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="container mx-auto px-4 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {
             statsFields.map((field, idx) => (

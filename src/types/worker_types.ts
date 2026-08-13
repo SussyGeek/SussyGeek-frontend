@@ -1,3 +1,4 @@
+import { FrozenStudentList } from "./backend";
 import { BatchBody } from "./requests"
 
 export type RunMsgFailure = {
@@ -11,7 +12,8 @@ export type RunMsgSuccess = {
     type: "BATCH",
     data: {
         studentBatch: Partial<BatchBody>[]
-        secondsElapsed: number
+        secondsElapsed: number,
+        frozenList: FrozenStudentList
     }
 };
 

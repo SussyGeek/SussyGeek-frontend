@@ -1,9 +1,10 @@
 import { FrozenListSuccessResponse } from "@/types/apiResponses";
 import { apiPaths } from "../apiPaths"
 import { apiClients } from "../client"
+import { FrozenStudentList } from "@/types/backend";
 
 
-export const getFrozenStudentList = async (instituteId: string) => {
+export const getFrozenStudentList = async (instituteId: string): Promise<FrozenStudentList> => {
     const urlEndpoint = apiPaths.students.getFrozenList(instituteId);
     const { data } = await apiClients.Backend.get<FrozenListSuccessResponse>(urlEndpoint);
     return data.students;
@@ -21,9 +22,9 @@ export const getRegularStudents = async (instituteId: string, pageNo: number) =>
 };
 
 export const getSortedStudents = async (
-    instituteId: string, 
-    pageNo: number, 
-    sortBy: 'score' | 'solved' | 'streak', 
+    instituteId: string,
+    pageNo: number,
+    sortBy: 'score' | 'solved' | 'streak',
     order: 'asc' | 'desc'
 ) => {
     try {

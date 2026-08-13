@@ -88,7 +88,7 @@ const InstitutionDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-24">
 
       <div className="container mx-auto px-4 py-8">
         {/* Institution Header */}
@@ -114,8 +114,9 @@ const InstitutionDetail = () => {
           { /* TODO: Introduce dynamic icons for each one. i.e TrendingUp, Users, Award */}
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {InstituteStatsCardData.map(stats => (
+            {InstituteStatsCardData.map((stats, idx) => (
               <InstituteStatsCard
+                key={`stats-card-${idx + 1}`}
                 title={stats.title}
                 description={stats.description}
                 counter={institute[stats.counterKey]}
@@ -169,19 +170,19 @@ const InstitutionDetail = () => {
                       <TableHead>Rank</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Branch</TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => handleSort('score')}
                       >
                         Score {renderSortArrow('score')}
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => handleSort('solved')}
                       >
                         Problems Solved {renderSortArrow('solved')}
                       </TableHead>
-                      <TableHead 
+                      <TableHead
                         className="text-right cursor-pointer hover:bg-muted/50 transition-colors"
                         onClick={() => handleSort('streak')}
                       >
@@ -230,9 +231,9 @@ const InstitutionDetail = () => {
 
                 {searchResults === null && hasMore && (
                   <div className="flex justify-center p-4 border-t">
-                    <Button 
-                      variant="outline" 
-                      onClick={loadMore} 
+                    <Button
+                      variant="outline"
+                      onClick={loadMore}
                       disabled={isStudentsLoading}
                     >
                       {isStudentsLoading ? "Loading..." : "Load More"}

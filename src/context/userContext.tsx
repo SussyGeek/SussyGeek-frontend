@@ -10,7 +10,7 @@ type UserContextType = {
     markContributingInactive: () => void;
 };
 
-const UserContext = createContext<UserContextType>({
+export const UserContext = createContext<UserContextType>({
     username: null,
     isContributing: false,
     isReady: false,
@@ -61,11 +61,4 @@ export const UserProvider = (
             {children}
         </UserContext.Provider>
     )
-};
-
-export function useAuth() {
-    const context = useContext(UserContext);
-    if (!context)
-        throw new Error("useAuth hook must be used within context provider");
-    return context;
 };

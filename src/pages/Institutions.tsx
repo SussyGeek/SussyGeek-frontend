@@ -15,13 +15,13 @@ const Institutions = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const initialStatus = searchParams.get("status") || "all";
-  
+
   const [institutes, setInstitutes] = useState<Institution[]>([]);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState(initialStatus);
   const debouncedSearch = useDebounce(searchQuery, 400);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const defaultInstitutesCache = useRef<Institution[] | null>(null);
 
   useEffect(() => {
@@ -29,12 +29,12 @@ const Institutions = () => {
 
     const fetchInstitutes = async () => {
       setIsLoading(true);
-      
+
       const query = debouncedSearch.trim();
       const params: Record<string, string> = {};
       if (query) params.search = query;
       if (statusFilter !== "all") params.status = statusFilter;
-      
+
       setSearchParams(params, { replace: true });
 
       if (query) {
@@ -55,7 +55,7 @@ const Institutions = () => {
           }
         }
       }
-      
+
       if (isMounted) setIsLoading(false);
     };
 
@@ -65,7 +65,7 @@ const Institutions = () => {
   }, [debouncedSearch, statusFilter, setSearchParams]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-24">
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">

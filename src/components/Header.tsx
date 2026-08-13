@@ -2,7 +2,7 @@ import { ArrowLeft, Landmark } from 'lucide-react';
 import { Button } from './ui/button'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import UserInstance from './UserInstance';
-import { useAuth } from '@/context/userContext';
+import { useAuth } from '@/hooks/useAuth';
 import { logout as Logout } from '@/api/services/userService';
 
 const Header = () => {
@@ -33,22 +33,23 @@ const Header = () => {
   )
 
   return (
-    <header className="border-b-2 shadow-4xl border-border bg-card">
+    <header className="fixed w-full border-b border-white/10 bg-green-200/30 backdrop-blur-lg border-b-2 border-green-800/15 z-50 shadow-lg">
       {
         pathname === '/' ?
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div>
+            <Link to="/">
               <img src="./SussyGeek_logo.avif" className="h-[3.5vw] w-[11.5vw]" />
-            </div>
-            {/* <h1 className="text-2xl font-bold text-foreground">SussyGeek</h1> */}
-            <div className="flex gap-2">
+            </Link>
 
+            <div className="flex gap-2">
               {
                 username &&
                 <UserInstance
                   username={username}
                   handleLogout={handleLogout}
-                />}
+                />
+              }
+
               <Link to="/institutions">
                 <BrowserInstituionsBtn
                   loggedIn={username ? true : false}
@@ -58,14 +59,21 @@ const Header = () => {
           </div> :
           <div className="container mx-auto px-4 py-4">
             <div className="flex justify-between">
-              <Button variant="ghost" onClick={() => navigate("/")} className="mb-2">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="mb-2 hover:bg-transparent hover:text-green-600"
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Home
               </Button>
+
               {username &&
                 <UserInstance
                   username={username}
-                  handleLogout={handleLogout} />}
+                  handleLogout={handleLogout}
+                />
+              }
             </div>
           </div>
       }

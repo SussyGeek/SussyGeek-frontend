@@ -1,13 +1,18 @@
 import { useState, useEffect, SetStateAction, Dispatch } from "react";
-import { useAuth } from "@/context/userContext";
+import { useAuth } from "./useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getInstitute } from "@/api/services/instituteService";
-import { getAllContributors, pingContributionSendPage, stopContribution } from "@/api/services/contributionService";
+import {
+  getAllContributors,
+  pingContributionSendPage,
+  stopContribution,
+} from "@/api/services/contributionService";
 import { login as loginService } from "@/api/services/userService";
 import { prepInstituteBlocks } from "@/utils/prepareData";
 import { useLocation } from "react-router-dom";
-import { Institution } from "@/types/appwrite";
+import { ContributionRow, Institution } from "@/types/appwrite";
 import { SessionState } from "@/types/state_types";
+import { useModal } from "./useModal";
 
 export const useContribute = (
   id: string | undefined,
@@ -16,6 +21,10 @@ export const useContribute = (
   const { toast } = useToast();
   const auth = useAuth();
   const { state } = useLocation();
+  const {
+    openModal,
+    closeModal
+  } = useModal();
 
   // Institute
   const [institute, setInstitute] = useState<any>(null);
@@ -23,17 +32,12 @@ export const useContribute = (
   const [isLoading, setIsLoading] = useState(true);
 
   // Contributions
-  const [topContributors, setTopContributors] = useState<any[]>([]);
+  const [topContributors, setTopContributors] = useState<ContributionRow[]>([]);
   const [activeContributors, setActiveContributors] = useState<any[]>([]);
   const [currentContributor, setCurrentContributor] = useState<any>(null);
 
   // Active contribution rows of other institute. [i.e curr_institute_id != institute_id]
   const [prevSessions, setPrevSessions] = useState<any>(null);
-
-
-  // Modal states
-  const [activeSessionModalOpen, setActiveSessionModalOpen] = useState(false);
-  const [usernameModalOpen, setUsernameModalOpen] = useState(false);
 
   const [isScraping, setIsScraping] = useState(false);
   const [username, setUsername] = useState("");
@@ -150,7 +154,7 @@ export const useContribute = (
     try {
       if (auth?.username) {
         if (prevInstitute) {
-          setActiveSessionModalOpen(true);
+          openModal("active_session");
           return;
         }
         await pingContributionEndpoint();
@@ -162,7 +166,7 @@ export const useContribute = (
         auth.markContributingActive();
         return;
       }
-      setUsernameModalOpen(true);
+      openModal("username");
     } catch (err: any) {
       toast({
         variant: "destructive",
@@ -190,12 +194,12 @@ export const useContribute = (
         if (response.success) {
           await auth?.refreshAuth();
         }
-        setUsernameModalOpen(false);
+        closeModal("username");
       } else {
         await pingContributionEndpoint();
         setIsScraping(true);
         auth.markContributingActive();
-        setActiveSessionModalOpen(false);
+        closeModal("active_session");
         toast({
           title: "Contribution Started",
           description: `Joined contribution network for ${institute?.name ?? state?.name ?? '-'}.`
@@ -211,7 +215,6 @@ export const useContribute = (
   };
 
   const handleStopContribution = async () => {
-    console.log(auth);
     if (!auth?.username || !auth?.isContributing) return;
     const result = await stopContribution(institute.$id);
     if (!result.success) {
@@ -235,10 +238,6 @@ export const useContribute = (
     activeContributors,
     currentContributor,
     prevInstitute,
-    activeSessionModalOpen,
-    setActiveSessionModalOpen,
-    usernameModalOpen,
-    setUsernameModalOpen,
     isScraping,
     username,
     setUsername,

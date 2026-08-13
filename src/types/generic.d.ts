@@ -30,3 +30,12 @@ export type BlockProps = {
     endPage: number | null;
     percentage: number | null;
 };
+
+export type ChatMessage = {
+    id: number,
+    user: string,
+    timestamp: number,
+    message: string
+};
+
+export type ActiveBox = "HallofFame" | "ChatBox";
