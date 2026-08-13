@@ -17,11 +17,13 @@ type ModalProps = {
   isModalOpen: boolean;
   setIsModalOpen: (v: boolean) => void;
   modalType: ModalType;
-  confirmContribution: (modalType: string) => void;
+  onConfirm: () => void;
 
   // only needed for activeSession
   instituteName?: string;
   onResumeSession?: () => void;
+
+  requestType: "Hall of Fame" | "Live Chat"
 
   // only needed for usernameSelection
   username?: string;
@@ -32,7 +34,8 @@ const Modal = ({
   isModalOpen,
   setIsModalOpen,
   modalType,
-  confirmContribution,
+  onConfirm,
+  requestType,
   instituteName = "K.K Wagh Institute of Engineering and Research",
   onResumeSession,
   username,
@@ -47,12 +50,15 @@ const Modal = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {isUsername ? "Join the Hall of Fame" : "Active Session"}
+            {isUsername ? `Join the ${requestType}` : "Active Session"}
           </DialogTitle>
 
           <DialogDescription>
             {isUsername
-              ? "Enter your username to appear on the leaderboard."
+              ? `Enter your username to ${requestType === "Hall of Fame" ?
+                "appear on the leaderboard" :
+                "talk with others and also join the contribution network."
+              }.`
               : "A previous session is active. You can only contribute to one institute at a time."}
           </DialogDescription>
         </DialogHeader>
@@ -86,10 +92,9 @@ const Modal = ({
           <Button variant="outline" onClick={() => setIsModalOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={() => {
-            confirmContribution(modalType);
-          }
-          }>Start Scraping</Button>
+          <Button onClick={onConfirm}>
+            Join {requestType === "Hall of Fame" && "Network"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

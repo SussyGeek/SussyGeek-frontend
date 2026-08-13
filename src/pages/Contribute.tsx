@@ -25,6 +25,8 @@ import { useChat } from "@/hooks/useChat";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 
+
+
 const Contribute = () => {
   const { id } = useParams();
   const navigation = useNavigate();
@@ -58,11 +60,9 @@ const Contribute = () => {
     currentContributor,
     prevInstitute,
     isScraping,
-    username,
-    setUsername,
     handleStartContribution,
     handleStopContribution,
-    confirmContribution,
+    confirmActiveSession,
     pauseContribution,
     isLoading
   } = useContribute(id, setSessionState);
@@ -70,6 +70,10 @@ const Contribute = () => {
   const {
     activeSessionModalOpen,
     usernameModalOpen,
+    usernameInput,
+    setUsernameInput,
+    confirmUserModal,
+    requestType,
     openModal,
     closeModal,
   } = useModal();
@@ -325,17 +329,17 @@ const Contribute = () => {
                   )}
                 </div>}
                 <Button
-                  onClick={async () => {
+                  onClick={() => {
+                    if (activeBox === "HallofFame" && !auth?.username) {
+                      openModal("username", "Live Chat");
+                      return;
+                    }
                     setActiveBox(prev => {
                       if (prev === "HallofFame") {
-                        if (!auth.username) {
-                          openModal("username");
-                        }
                         chatterTool.establishConnection();
                       }
                       return prev === "HallofFame" ? "ChatBox" : "HallofFame";
                     });
-
                   }}
                   variant="outline"
                   className="w-full sm:w-auto ml-auto">
@@ -372,25 +376,27 @@ const Contribute = () => {
       <Modal
         isModalOpen={usernameModalOpen}
         setIsModalOpen={() => {
-          usernameModalOpen ? closeModal("username") : openModal("username")
+          usernameModalOpen ? closeModal("username") : openModal("username", "Live Chat")
         }}
+        requestType={requestType}
         modalType="usernameSelection"
-        confirmContribution={confirmContribution}
-        username={username}
-        setUsername={setUsername}
+        onConfirm={confirmUserModal}
+        username={usernameInput}
+        setUsername={setUsernameInput}
       />
 
       {prevInstitute && <Modal
         isModalOpen={activeSessionModalOpen}
         setIsModalOpen={() => {
-          activeSessionModalOpen ? closeModal("active_session") : openModal("active_session");
+          activeSessionModalOpen ? closeModal("active_session") : openModal("active_session", "Hall of Fame");
         }}
+        requestType={requestType}
         modalType="activeSession"
         instituteName={prevInstitute?.name ?? ''}
         onResumeSession={() => {
           navigation(`/contribute/${prevInstitute?.id}`)
         }}
-        confirmContribution={confirmContribution}
+        onConfirm={confirmActiveSession}
       />}
     </div>
   );

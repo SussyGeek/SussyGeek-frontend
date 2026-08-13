@@ -7,7 +7,6 @@ import {
   pingContributionSendPage,
   stopContribution,
 } from "@/api/services/contributionService";
-import { login as loginService } from "@/api/services/userService";
 import { prepInstituteBlocks } from "@/utils/prepareData";
 import { useLocation } from "react-router-dom";
 import { ContributionRow, Institution } from "@/types/appwrite";
@@ -21,10 +20,7 @@ export const useContribute = (
   const { toast } = useToast();
   const auth = useAuth();
   const { state } = useLocation();
-  const {
-    openModal,
-    closeModal
-  } = useModal();
+  const { openModal, closeModal } = useModal();
 
   // Institute
   const [institute, setInstitute] = useState<any>(null);
@@ -40,7 +36,6 @@ export const useContribute = (
   const [prevSessions, setPrevSessions] = useState<any>(null);
 
   const [isScraping, setIsScraping] = useState(false);
-  const [username, setUsername] = useState("");
 
   // Get contribution categories and previous sessions
   // on page load.
@@ -154,7 +149,7 @@ export const useContribute = (
     try {
       if (auth?.username) {
         if (prevInstitute) {
-          openModal("active_session");
+          openModal("active_session", "Hall of Fame");
           return;
         }
         await pingContributionEndpoint();
@@ -166,7 +161,7 @@ export const useContribute = (
         auth.markContributingActive();
         return;
       }
-      openModal("username");
+      openModal("username", "Hall of Fame");
     } catch (err: any) {
       toast({
         variant: "destructive",
@@ -176,35 +171,17 @@ export const useContribute = (
     }
   };
 
-
-  // TODO: Rename to confirmModal
-  const confirmContribution = async (modalType: string) => {
+  // Confirms the active-session modal: pings the endpoint, starts scraping, and closes the modal.
+  const confirmActiveSession = async () => {
     try {
-      if (modalType === "usernameSelection") {
-        if (!username.trim() || username.length > 24) {
-          toast({
-            variant: "destructive",
-            title: "Username required",
-            description: "Provided name unacceptable."
-          });
-          return;
-        }
-
-        const response = await loginService(username);
-        if (response.success) {
-          await auth?.refreshAuth();
-        }
-        closeModal("username");
-      } else {
-        await pingContributionEndpoint();
-        setIsScraping(true);
-        auth.markContributingActive();
-        closeModal("active_session");
-        toast({
-          title: "Contribution Started",
-          description: `Joined contribution network for ${institute?.name ?? state?.name ?? '-'}.`
-        });
-      }
+      await pingContributionEndpoint();
+      setIsScraping(true);
+      auth.markContributingActive();
+      closeModal("active_session");
+      toast({
+        title: "Contribution Started",
+        description: `Joined contribution network for ${institute?.name ?? state?.name ?? '-'}.`
+      });
     } catch (err: any) {
       toast({
         variant: "destructive",
@@ -239,10 +216,8 @@ export const useContribute = (
     currentContributor,
     prevInstitute,
     isScraping,
-    username,
-    setUsername,
     handleStartContribution,
-    confirmContribution,
+    confirmActiveSession,
     handleStopContribution,
     pauseContribution,
     state,

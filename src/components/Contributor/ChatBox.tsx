@@ -1,17 +1,15 @@
 import { useChat } from "@/hooks/useChat";
-import { ChatMessage } from "@/types/generic";
 import { Send, UsersRound } from "lucide-react";
 import { useState } from "react";
 
 const Chats = () => {
     const [message, setMessage] = useState("");
-    const [messages] = useState<ChatMessage[]>([]);
-    const chatterTool = useChat();
+    const { messages, pushMessage } = useChat();
 
     const handleSend = () => {
         const trimmed = message.trim();
         if (!trimmed) return;
-        console.log(trimmed);
+        pushMessage(trimmed);
         setMessage("");
     };
 
@@ -53,11 +51,11 @@ const Chats = () => {
                                     className={`min-w-0 max-w-[75%] sm:max-w-[65%] flex flex-col ${isCurrentUser ? "items-end" : "items-start"
                                         }`}
                                 >
-                                    <span className="text-[11px] text-muted-foreground mb-1 px-1">
+                                    <span className="text-[11px] text-muted-foreground max-y mb-1 px-1">
                                         {chat.user}
                                     </span>
                                     <div
-                                        className={`px-3 py-2 rounded-2xl text-sm break-words ${isCurrentUser
+                                        className={`px-3 py-2 max-w-[48vw] lg:max-w-[16vw] rounded-2xl text-sm break-words ${isCurrentUser
                                             ? "bg-primary text-primary-foreground rounded-br-sm"
                                             : "bg-muted rounded-bl-sm"
                                             }`}

@@ -12,9 +12,11 @@ type ChatContextType = {
         current: WebSocket | null
     },
     messages: ChatMessage[],
+    pushMessage: (message: string) => void,
     establishConnection: () => Promise<void> | void;
 };
 
+// TODO: To be moved to dedicated chat config.
 const WEBSOCKET_ENDPOINT = import.meta.env.VITE_WS_CHAT_ENDPOINT;
 if (!WEBSOCKET_ENDPOINT) {
     throw new Error("Websocket endpoint not defined");
@@ -23,6 +25,7 @@ if (!WEBSOCKET_ENDPOINT) {
 export const ChatContext = createContext<ChatContextType>({
     socketRef: { current: null },
     establishConnection: () => { },
+    pushMessage: () => { },
     messages: []
 });
 
@@ -33,8 +36,10 @@ export const ChatProvider = (
     const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     const establishConnection = async () => {
-        if (socketRef.current?.OPEN || socketRef.current?.CONNECTING)
-            return;
+        if (
+            socketRef.current?.readyState === WebSocket.OPEN ||
+            socketRef.current?.readyState === WebSocket.CONNECTING
+        ) return;
 
         socketRef.current = new WebSocket(WEBSOCKET_ENDPOINT);
 
@@ -55,7 +60,7 @@ export const ChatProvider = (
         socketRef.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
-            if (data.type === "chat_messages") {
+            if (data.type === "chat_message") {
                 setMessages(prev => [
                     ...prev,
                     data.message
@@ -69,7 +74,24 @@ export const ChatProvider = (
     const pushMessage = (
         message: string
     ) => {
+        if (
+            !socketRef.current ||
+            socketRef.current.readyState === WebSocket.CLOSED ||
+            socketRef.current.readyState === WebSocket.CLOSING
+        ) {
+            // TODO: Introduce proper development logs for this. Will be hard to diagnose later.
+            return;
+        }
+        const isBadMessage = message.length > 120;
+        if (isBadMessage) {
+            return;
+        }
 
+        socketRef.current.send(JSON.stringify({
+            type: "send_message",
+            id: localStorage.getItem("sessionId"),
+            message,
+        }));
     }
 
 
@@ -82,9 +104,9 @@ export const ChatProvider = (
 
     return (
         <ChatContext.Provider value={{
-            // @ts-ignore
             socketRef,
             establishConnection,
+            pushMessage,
             messages,
         }}>
             {children}
