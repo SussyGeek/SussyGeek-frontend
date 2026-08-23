@@ -12,6 +12,7 @@ import Header from "./components/Header";
 import { UserProvider } from "./context/userContext";
 import { ChatProvider } from "./context/chatContext";
 import { ModalProvider } from "./context/modalContext";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Footer />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
